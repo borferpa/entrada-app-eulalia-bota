@@ -21,7 +21,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
             </div>
             <div className="flex-1">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground sm:text-sm">
-                Total Entrades
+                Total Tickets
               </p>
               <p className="text-2xl font-bold text-foreground sm:text-3xl">
                 {stats.total}

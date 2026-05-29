@@ -1,6 +1,12 @@
 import { GraduationCap } from "lucide-react"
 
 export function Header() {
+  const today = new Date().toLocaleDateString("ca-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
       <div className="container mx-auto px-4 py-4">
@@ -11,7 +17,7 @@ export function Header() {
             </div>
             <div>
               <h1 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">
-                Gestió d&apos;Entrades
+                Gestió d&apos;Entrades i Tickets
               </h1>
               <p className="text-sm text-muted-foreground">
                 Festa Final de Curs - Escola Eulàlia Bota
@@ -19,9 +25,9 @@ export function Header() {
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="hidden sm:inline">Curs 2023-2024</span>
-            <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
-              21 Juny 2024
+            <span className="hidden sm:inline">Curs 2025-2026</span>
+            <span className="rounded-full bg-[oklch(0.55_0.15_145)]/15 px-3 py-1 text-xs font-medium text-[oklch(0.45_0.15_145)]">
+              {today}
             </span>
           </div>
         </div>

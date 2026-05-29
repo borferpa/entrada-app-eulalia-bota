@@ -11,6 +11,12 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { CheckCircle2, Circle, ChevronDown, ChevronUp } from "lucide-react"
 import type { Ticket } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -84,6 +90,7 @@ function TicketCard({ ticket, onDeliveryToggle }: { ticket: Ticket; onDeliveryTo
           <Button
             variant={ticket.entregada ? "default" : "outline"}
             size="icon"
+            disabled={ticket.estat === "Pendent"}
             onClick={() => onDeliveryToggle(ticket.id, !ticket.entregada)}
             className={cn(
               "h-12 w-12 shrink-0",
@@ -118,7 +125,7 @@ function TicketCard({ ticket, onDeliveryToggle }: { ticket: Ticket; onDeliveryTo
               <span className="ml-1 font-mono">{ticket.refMoviment}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Filtra:</span>
+              <span className="text-muted-foreground">Any:</span>
               <span className="ml-1">{ticket.filtra}</span>
             </div>
             <div>
@@ -178,18 +185,16 @@ export function TicketsTable({ tickets, onDeliveryToggle }: TicketsTableProps) {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead className="w-[80px]">Filtra</TableHead>
+                <TableHead className="w-[140px] text-center">Entrega</TableHead>
+                <TableHead className="w-[80px]">Any</TableHead>
                 <TableHead className="w-[130px]">Ref. Moviment</TableHead>
                 <TableHead className="min-w-[180px]">Titular</TableHead>
-                <TableHead className="min-w-[200px]">Concepte</TableHead>
-                <TableHead className="w-[100px]">Tipus</TableHead>
+                <TableHead className="w-[180px] max-w-[180px]">Concepte</TableHead>
                 <TableHead className="w-[110px]">Data Emissió</TableHead>
                 <TableHead className="w-[110px]">Venciment</TableHead>
-                <TableHead className="w-[120px]">Pagament</TableHead>
                 <TableHead className="w-[100px] text-right">Import</TableHead>
                 <TableHead className="w-[100px] text-right">Pendent</TableHead>
                 <TableHead className="w-[90px]">Estat</TableHead>
-                <TableHead className="w-[140px] text-center">Entrega</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -201,44 +206,11 @@ export function TicketsTable({ tickets, onDeliveryToggle }: TicketsTableProps) {
                     ticket.entregada && "bg-[oklch(0.55_0.15_145)]/5 hover:bg-[oklch(0.55_0.15_145)]/10"
                   )}
                 >
-                  <TableCell className="font-mono text-xs">{ticket.filtra}</TableCell>
-                  <TableCell className="font-mono text-xs">{ticket.refMoviment}</TableCell>
-                  <TableCell className="font-medium">{ticket.titular}</TableCell>
-                  <TableCell className="text-sm">{ticket.concepte}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">
-                      {ticket.tipus}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm">{formatDate(ticket.dataEmissio)}</TableCell>
-                  <TableCell className="text-sm">{formatDate(ticket.dataVenciment)}</TableCell>
-                  <TableCell className="text-sm">{ticket.formaPagament}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatCurrency(ticket.import)}
-                  </TableCell>
-                  <TableCell className={cn(
-                    "text-right font-medium",
-                    ticket.pendent > 0 && "text-destructive"
-                  )}>
-                    {formatCurrency(ticket.pendent)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={ticket.estat === "Pagat" ? "default" : "destructive"}
-                      className={cn(
-                        "text-xs",
-                        ticket.estat === "Pagat" 
-                          ? "bg-[oklch(0.55_0.15_145)]/10 text-[oklch(0.45_0.15_145)] border-[oklch(0.55_0.15_145)]/30" 
-                          : ""
-                      )}
-                    >
-                      {ticket.estat}
-                    </Badge>
-                  </TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant={ticket.entregada ? "default" : "outline"}
                       size="sm"
+                      disabled={ticket.estat === "Pendent"}
                       onClick={() => onDeliveryToggle(ticket.id, !ticket.entregada)}
                       className={cn(
                         "gap-2 min-w-[110px]",
@@ -259,6 +231,47 @@ export function TicketsTable({ tickets, onDeliveryToggle }: TicketsTableProps) {
                         </>
                       )}
                     </Button>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">{ticket.filtra}</TableCell>
+                  <TableCell className="font-mono text-xs">{ticket.refMoviment}</TableCell>
+                  <TableCell className="font-medium">{ticket.titular}</TableCell>
+                  <TableCell className="w-[180px] max-w-[180px]">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="block truncate text-sm cursor-default">
+                            {ticket.concepte}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          {ticket.concepte}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
+                  <TableCell className="text-sm">{formatDate(ticket.dataEmissio)}</TableCell>
+                  <TableCell className="text-sm">{formatDate(ticket.dataVenciment)}</TableCell>
+                  <TableCell className="text-right font-medium">
+                    {formatCurrency(ticket.import)}
+                  </TableCell>
+                  <TableCell className={cn(
+                    "text-right font-medium",
+                    ticket.pendent > 0 && "text-destructive"
+                  )}>
+                    {formatCurrency(ticket.pendent)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={ticket.estat === "Pagat" ? "default" : "destructive"}
+                      className={cn(
+                        "text-xs",
+                        ticket.estat === "Pagat"
+                          ? "bg-[oklch(0.55_0.15_145)]/10 text-[oklch(0.45_0.15_145)] border-[oklch(0.55_0.15_145)]/30"
+                          : ""
+                      )}
+                    >
+                      {ticket.estat}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))}
