@@ -1,4 +1,4 @@
-import { GraduationCap } from "lucide-react"
+import Image from "next/image"
 
 export function Header() {
   const today = new Date().toLocaleDateString("ca-ES", {
@@ -12,8 +12,8 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <GraduationCap className="h-6 w-6" />
+            <div className="flex h-20 w-20 -my-4 items-center justify-center overflow-hidden rounded-lg">
+              <Image src="/AFA.jpg" alt="Logo AFA" width={80} height={80} className="object-contain" />
             </div>
             <div>
               <h1 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">

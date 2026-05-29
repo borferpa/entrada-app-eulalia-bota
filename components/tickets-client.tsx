@@ -24,13 +24,16 @@ interface TicketsClientProps {
 export function TicketsClient({ initialTickets }: TicketsClientProps) {
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets)
   const [searchQuery, setSearchQuery] = useState('')
+  const [estatFilter, setEstatFilter] = useState<'tots' | 'Pagat' | 'Pendent'>('tots')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
 
   const filteredTickets = useMemo(() => {
-    if (!searchQuery.trim()) return tickets
+    let result = tickets
+    if (estatFilter !== 'tots') result = result.filter((t) => t.estat === estatFilter)
+    if (!searchQuery.trim()) return result
     const query = searchQuery.toLowerCase()
-    return tickets.filter((t) =>
+    return result.filter((t) =>
       t.refMoviment.toLowerCase().includes(query) ||
       t.titular.toLowerCase().includes(query) ||
       t.concepte.toLowerCase().includes(query) ||
@@ -39,9 +42,9 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
       t.estat.toLowerCase().includes(query) ||
       t.import.toString().includes(query)
     )
-  }, [tickets, searchQuery])
+  }, [tickets, searchQuery, estatFilter])
 
-  useEffect(() => { setCurrentPage(1) }, [searchQuery, pageSize])
+  useEffect(() => { setCurrentPage(1) }, [searchQuery, pageSize, estatFilter])
 
   const totalPages = Math.max(1, Math.ceil(filteredTickets.length / pageSize))
   const pagedTickets = filteredTickets.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -84,6 +87,26 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
             <span>{cat.label}</span>
             <span className="font-bold">{cat.count}</span>
           </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Estat:</span>
+        {(['tots', 'Pagat', 'Pendent'] as const).map((opt) => (
+          <button
+            key={opt}
+            onClick={() => setEstatFilter(opt)}
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+              estatFilter === opt
+                ? opt === 'Pagat'
+                  ? 'bg-[oklch(0.55_0.15_145)] text-white border-[oklch(0.55_0.15_145)]'
+                  : opt === 'Pendent'
+                  ? 'bg-destructive text-white border-destructive'
+                  : 'bg-foreground text-background border-foreground'
+                : 'bg-background text-muted-foreground border-border hover:border-foreground'
+            }`}
+          >
+            {opt === 'tots' ? 'Tots' : opt}
+          </button>
         ))}
       </div>
       <SearchBar value={searchQuery} onChange={setSearchQuery} />
