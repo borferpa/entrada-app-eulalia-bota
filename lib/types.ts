@@ -4,6 +4,7 @@ export interface Ticket {
   refMoviment: string
   titular: string
   concepte: string
+  categoria: string
   tipus: string
   dataEmissio: string
   dataVenciment: string

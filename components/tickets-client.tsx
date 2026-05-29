@@ -11,10 +11,10 @@ import type { Ticket } from '@/lib/types'
 const PAGE_SIZES = [25, 50, 100]
 
 const CATEGORIES = [
-  { prefix: 'e', label: 'Entrades',  emoji: '🎟️', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  { prefix: 'b', label: 'Refrescos', emoji: '🥤', color: 'bg-orange-50 text-orange-700 border-orange-200' },
-  { prefix: 'a', label: 'Aigues',    emoji: '💧', color: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
-  { prefix: 'g', label: 'Gelats',    emoji: '🍦', color: 'bg-pink-50 text-pink-700 border-pink-200' },
+  { key: 'entrada',  label: 'Entrades',  emoji: '🎟️', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+  { key: 'refresc',  label: 'Refrescos', emoji: '🥤', color: 'bg-orange-50 text-orange-700 border-orange-200' },
+  { key: 'aigua',    label: 'Aigues',    emoji: '💧', color: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
+  { key: 'gelat',    label: 'Gelats',    emoji: '🍦', color: 'bg-pink-50 text-pink-700 border-pink-200' },
 ]
 
 interface TicketsClientProps {
@@ -25,12 +25,15 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets)
   const [searchQuery, setSearchQuery] = useState('')
   const [estatFilter, setEstatFilter] = useState<'tots' | 'Pagat' | 'Pendent'>('tots')
+  const [entregadaFilter, setEntregadaFilter] = useState<'tots' | 'entregat' | 'pendent'>('tots')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
 
   const filteredTickets = useMemo(() => {
     let result = tickets
     if (estatFilter !== 'tots') result = result.filter((t) => t.estat === estatFilter)
+    if (entregadaFilter === 'entregat') result = result.filter((t) => t.entregada)
+    if (entregadaFilter === 'pendent')  result = result.filter((t) => !t.entregada)
     if (!searchQuery.trim()) return result
     const query = searchQuery.toLowerCase()
     return result.filter((t) =>
@@ -42,9 +45,9 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
       t.estat.toLowerCase().includes(query) ||
       t.import.toString().includes(query)
     )
-  }, [tickets, searchQuery, estatFilter])
+  }, [tickets, searchQuery, estatFilter, entregadaFilter])
 
-  useEffect(() => { setCurrentPage(1) }, [searchQuery, pageSize, estatFilter])
+  useEffect(() => { setCurrentPage(1) }, [searchQuery, pageSize, estatFilter, entregadaFilter])
 
   const totalPages = Math.max(1, Math.ceil(filteredTickets.length / pageSize))
   const pagedTickets = filteredTickets.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -58,7 +61,7 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
   const categoryCounts = useMemo(() =>
     CATEGORIES.map((cat) => ({
       ...cat,
-      count: tickets.filter((t) => t.id.startsWith(`${cat.prefix}-`)).length,
+      count: tickets.filter((t) => t.categoria === cat.key).length,
     })),
     [tickets]
   )
@@ -80,7 +83,7 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
       <div className="flex flex-wrap gap-2">
         {categoryCounts.map((cat) => (
           <div
-            key={cat.prefix}
+            key={cat.key}
             className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium ${cat.color}`}
           >
             <span>{cat.emoji}</span>
@@ -89,8 +92,9 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
           </div>
         ))}
       </div>
+      <div className="flex flex-wrap gap-4">
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Estat:</span>
+        <span className="text-sm text-muted-foreground">Pagament:</span>
         {(['tots', 'Pagat', 'Pendent'] as const).map((opt) => (
           <button
             key={opt}
@@ -108,6 +112,27 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
             {opt === 'tots' ? 'Tots' : opt}
           </button>
         ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Entrega:</span>
+        {(['tots', 'entregat', 'pendent'] as const).map((opt) => (
+          <button
+            key={opt}
+            onClick={() => setEntregadaFilter(opt)}
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+              entregadaFilter === opt
+                ? opt === 'entregat'
+                  ? 'bg-[oklch(0.55_0.15_145)] text-white border-[oklch(0.55_0.15_145)]'
+                  : opt === 'pendent'
+                  ? 'bg-[oklch(0.75_0.15_75)] text-[oklch(0.25_0.05_75)] border-[oklch(0.75_0.15_75)]'
+                  : 'bg-foreground text-background border-foreground'
+                : 'bg-background text-muted-foreground border-border hover:border-foreground'
+            }`}
+          >
+            {opt === 'tots' ? 'Tots' : opt === 'entregat' ? 'Entregat' : 'Pendent'}
+          </button>
+        ))}
+      </div>
       </div>
       <SearchBar value={searchQuery} onChange={setSearchQuery} />
       {searchQuery.trim() && (
