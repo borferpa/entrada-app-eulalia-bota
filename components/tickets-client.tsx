@@ -10,6 +10,9 @@ import type { Ticket } from '@/lib/types'
 
 const PAGE_SIZES = [25, 50, 100]
 
+export type SortKey = 'entregada' | 'filtra' | 'refMoviment' | 'titular' | 'concepte' | 'dataEmissio' | 'dataVenciment' | 'import' | 'pendent' | 'estat'
+export type SortDir = 'asc' | 'desc'
+
 const CATEGORIES = [
   { key: 'entrada',  label: 'Entrades',  emoji: '🎟️', color: 'bg-blue-50 text-blue-700 border-blue-200' },
   { key: 'refresc',  label: 'Refrescos', emoji: '🥤', color: 'bg-orange-50 text-orange-700 border-orange-200' },
@@ -26,6 +29,8 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [estatFilter, setEstatFilter] = useState<'tots' | 'Pagat' | 'Pendent'>('tots')
   const [entregadaFilter, setEntregadaFilter] = useState<'tots' | 'entregat' | 'pendent'>('tots')
+  const [sortKey, setSortKey] = useState<SortKey>('titular')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
 
@@ -34,20 +39,35 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
     if (estatFilter !== 'tots') result = result.filter((t) => t.estat === estatFilter)
     if (entregadaFilter === 'entregat') result = result.filter((t) => t.entregada)
     if (entregadaFilter === 'pendent')  result = result.filter((t) => !t.entregada)
-    if (!searchQuery.trim()) return result
-    const query = searchQuery.toLowerCase()
-    return result.filter((t) =>
-      t.refMoviment.toLowerCase().includes(query) ||
-      t.titular.toLowerCase().includes(query) ||
-      t.concepte.toLowerCase().includes(query) ||
-      t.tipus.toLowerCase().includes(query) ||
-      t.formaPagament.toLowerCase().includes(query) ||
-      t.estat.toLowerCase().includes(query) ||
-      t.import.toString().includes(query)
-    )
-  }, [tickets, searchQuery, estatFilter, entregadaFilter])
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter((t) =>
+        t.refMoviment.toLowerCase().includes(query) ||
+        t.titular.toLowerCase().includes(query) ||
+        t.concepte.toLowerCase().includes(query) ||
+        t.tipus.toLowerCase().includes(query) ||
+        t.formaPagament.toLowerCase().includes(query) ||
+        t.estat.toLowerCase().includes(query) ||
+        t.import.toString().includes(query)
+      )
+    }
+    return [...result].sort((a, b) => {
+      const av = a[sortKey]
+      const bv = b[sortKey]
+      let cmp = 0
+      if (typeof av === 'boolean' && typeof bv === 'boolean') cmp = Number(av) - Number(bv)
+      else if (typeof av === 'number' && typeof bv === 'number') cmp = av - bv
+      else cmp = String(av).localeCompare(String(bv), 'ca')
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [tickets, searchQuery, estatFilter, entregadaFilter, sortKey, sortDir])
 
-  useEffect(() => { setCurrentPage(1) }, [searchQuery, pageSize, estatFilter, entregadaFilter])
+  useEffect(() => { setCurrentPage(1) }, [searchQuery, pageSize, estatFilter, entregadaFilter, sortKey, sortDir])
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('asc') }
+  }
 
   const totalPages = Math.max(1, Math.ceil(filteredTickets.length / pageSize))
   const pagedTickets = filteredTickets.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -148,7 +168,7 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
           {filteredTickets.length} {filteredTickets.length === 1 ? 'resultat' : 'resultats'} per a &ldquo;{searchQuery}&rdquo;
         </p>
       )}
-      <TicketsTable tickets={pagedTickets} onDeliveryToggle={handleDeliveryToggle} />
+      <TicketsTable tickets={pagedTickets} onDeliveryToggle={handleDeliveryToggle} sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
       <div className="flex items-center justify-between gap-4 pt-2">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>Files per pàgina:</span>

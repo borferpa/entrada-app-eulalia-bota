@@ -17,14 +17,42 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { CheckCircle2, Circle, ChevronDown, ChevronUp } from "lucide-react"
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react"
 import type { Ticket } from "@/lib/types"
+import type { SortKey, SortDir } from "@/components/tickets-client"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 
 interface TicketsTableProps {
   tickets: Ticket[]
   onDeliveryToggle: (ticketId: string, newValue: boolean) => void
+  sortKey: SortKey
+  sortDir: SortDir
+  onSort: (key: SortKey) => void
+}
+
+function SortHead({ label, sortField, currentKey, currentDir, onSort, className }: {
+  label: string
+  sortField: SortKey
+  currentKey: SortKey
+  currentDir: SortDir
+  onSort: (key: SortKey) => void
+  className?: string
+}) {
+  const active = currentKey === sortField
+  return (
+    <TableHead className={cn('cursor-pointer select-none', className)} onClick={() => onSort(sortField)}>
+      <div className="flex items-center gap-1">
+        <span>{label}</span>
+        {active
+          ? currentDir === 'asc'
+            ? <ChevronUp className="h-3 w-3 shrink-0" />
+            : <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-40" />
+        }
+      </div>
+    </TableHead>
+  )
 }
 
 function formatDate(dateString: string) {
@@ -151,7 +179,7 @@ function TicketCard({ ticket, onDeliveryToggle }: { ticket: Ticket; onDeliveryTo
   )
 }
 
-export function TicketsTable({ tickets, onDeliveryToggle }: TicketsTableProps) {
+export function TicketsTable({ tickets, onDeliveryToggle, sortKey, sortDir, onSort }: TicketsTableProps) {
   if (tickets.length === 0) {
     return (
       <Card>
@@ -185,16 +213,15 @@ export function TicketsTable({ tickets, onDeliveryToggle }: TicketsTableProps) {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead className="w-[140px] text-center">Entrega</TableHead>
-                <TableHead className="w-[80px]">Any</TableHead>
-                <TableHead className="w-[130px]">Ref. Moviment</TableHead>
-                <TableHead className="min-w-[180px]">Titular</TableHead>
-                <TableHead className="w-[180px] max-w-[180px]">Concepte</TableHead>
-                <TableHead className="w-[110px]">Data Emissió</TableHead>
-                <TableHead className="w-[110px]">Venciment</TableHead>
-                <TableHead className="w-[100px] text-right">Import</TableHead>
-                <TableHead className="w-[100px] text-right">Pendent</TableHead>
-                <TableHead className="w-[90px]">Estat</TableHead>
+                <SortHead label="Entrega"       sortField="entregada"     currentKey={sortKey} currentDir={sortDir} onSort={onSort} className="w-[140px] text-center" />
+                <SortHead label="Ref. Moviment" sortField="refMoviment"   currentKey={sortKey} currentDir={sortDir} onSort={onSort} className="w-[130px]" />
+                <SortHead label="Titular"       sortField="titular"       currentKey={sortKey} currentDir={sortDir} onSort={onSort} className="min-w-[180px]" />
+                <SortHead label="Concepte"      sortField="concepte"      currentKey={sortKey} currentDir={sortDir} onSort={onSort} className="w-[180px] max-w-[180px]" />
+                <SortHead label="Data Emissió"  sortField="dataEmissio"   currentKey={sortKey} currentDir={sortDir} onSort={onSort} className="w-[110px]" />
+                <SortHead label="Venciment"     sortField="dataVenciment" currentKey={sortKey} currentDir={sortDir} onSort={onSort} className="w-[110px]" />
+                <SortHead label="Import"        sortField="import"        currentKey={sortKey} currentDir={sortDir} onSort={onSort} className="w-[100px] text-right" />
+                <SortHead label="Pendent"       sortField="pendent"       currentKey={sortKey} currentDir={sortDir} onSort={onSort} className="w-[100px] text-right" />
+                <SortHead label="Estat"         sortField="estat"         currentKey={sortKey} currentDir={sortDir} onSort={onSort} className="w-[90px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -232,7 +259,6 @@ export function TicketsTable({ tickets, onDeliveryToggle }: TicketsTableProps) {
                       )}
                     </Button>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{ticket.filtra}</TableCell>
                   <TableCell className="font-mono text-xs">{ticket.refMoviment}</TableCell>
                   <TableCell className="font-medium">{ticket.titular}</TableCell>
                   <TableCell className="w-[180px] max-w-[180px]">
