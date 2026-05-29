@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { Header } from '@/components/header'
 import { TicketsClient } from '@/components/tickets-client'
 import { getTickets } from '@/lib/services/tickets'

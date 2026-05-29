@@ -70,11 +70,19 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
     setTickets((prev) =>
       prev.map((t) => (t.id === ticketId ? { ...t, entregada: newValue } : t))
     )
-    await fetch(`/api/tickets/${ticketId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entregada: newValue }),
-    })
+    try {
+      const res = await fetch(`/api/tickets/${ticketId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entregada: newValue }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    } catch {
+      // Revertir update optimista si falla
+      setTickets((prev) =>
+        prev.map((t) => (t.id === ticketId ? { ...t, entregada: !newValue } : t))
+      )
+    }
   }
 
   return (
