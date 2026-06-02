@@ -40,14 +40,15 @@ export function TicketsClient({ initialTickets }: TicketsClientProps) {
     if (entregadaFilter === 'entregat') result = result.filter((t) => t.entregada)
     if (entregadaFilter === 'pendent')  result = result.filter((t) => !t.entregada)
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
+      const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ')
+      const query = normalize(searchQuery)
       result = result.filter((t) =>
-        t.refMoviment.toLowerCase().includes(query) ||
-        t.titular.toLowerCase().includes(query) ||
-        t.concepte.toLowerCase().includes(query) ||
-        t.tipus.toLowerCase().includes(query) ||
-        t.formaPagament.toLowerCase().includes(query) ||
-        t.estat.toLowerCase().includes(query) ||
+        normalize(t.refMoviment).includes(query) ||
+        normalize(t.titular).includes(query) ||
+        normalize(t.concepte).includes(query) ||
+        normalize(t.tipus).includes(query) ||
+        normalize(t.formaPagament).includes(query) ||
+        normalize(t.estat).includes(query) ||
         t.import.toString().includes(query)
       )
     }
